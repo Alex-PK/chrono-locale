@@ -1,0 +1,50 @@
+{
+	"short_months": [
+		"Jan",
+		"Feb",
+		"Mar",
+		"Apr",
+		"Mei",
+		"Juni",
+		"Juli",
+		"Agu",
+		"Sep",
+		"Okt",
+		"Nov",
+		"Des"
+	],
+	"long_months": [
+		"Januari",
+		"Februari",
+		"Maret",
+		"April",
+		"Mei",
+		"Juni",
+		"Juli",
+		"Agustus",
+		"September",
+		"Oktober",
+		"November",
+		"Desember"
+	],
+	"short_weekdays": [
+		"Sn",
+		"Sl",
+		"Rb",
+		"Km",
+		"Jm",
+		"Sb",
+		"Mg"
+	],
+	"long_weekdays": [
+		"Senin",
+		"Selasa",
+		"Rabu",
+		"kamis",
+		"Jumat",
+		"Sabtu",
+		"Minggu"
+	]
+}
+
+
