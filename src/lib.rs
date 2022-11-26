@@ -233,17 +233,23 @@ where
 
 			Item::Fixed(spec) => {
 				use self::Fixed::*;
-
+				enum ColonMode {
+					None,
+					Single,
+					Double,
+					Triple
+				}
 				/// Prints an offset from UTC in the format of `+HHMM` or `+HH:MM`.
 				/// `Z` instead of `+00[:]00` is allowed when `allow_zulu` is true.
-				fn write_local_minus_utc(w: &mut fmt::Formatter, off: FixedOffset, allow_zulu: bool, use_colon: bool) -> fmt::Result {
+				fn write_local_minus_utc(w: &mut fmt::Formatter, off: FixedOffset, allow_zulu: bool, use_colon: ColonMode) -> fmt::Result {
 					let off = off.local_minus_utc();
 					if !allow_zulu || off != 0 {
 						let (sign, off) = if off < 0 { ('-', -off) } else { ('+', off) };
-						if use_colon {
-							write!(w, "{}{:02}:{:02}", sign, off / 3600, off / 60 % 60)
-						} else {
-							write!(w, "{}{:02}{:02}", sign, off / 3600, off / 60 % 60)
+						match use_colon {
+							ColonMode::Single => write!(w, "{}{:02}:{:02}", sign, off / 3600, off / 60 % 60),
+							ColonMode::Double => write!(w, "{}{:02}:{:02}:{:02}", sign, off / 3600, off / 60 % 60, off % 60),
+							ColonMode::Triple => write!(w, "{}{}", sign, off / 3600),
+							ColonMode::None => write!(w, "{}{:02}{:02}", sign, off / 3600, off / 60 % 60)
 						}
 					} else {
 						write!(w, "Z")
@@ -283,10 +289,12 @@ where
 					}),
 					Internal(_) => panic!("Internal is not supported"),
 					TimezoneName => off.map(|&(ref name, _)| write!(w, "{}", *name)),
-					TimezoneOffsetColon => off.map(|&(_, off)| write_local_minus_utc(w, off, false, true)),
-					TimezoneOffsetColonZ => off.map(|&(_, off)| write_local_minus_utc(w, off, true, true)),
-					TimezoneOffset => off.map(|&(_, off)| write_local_minus_utc(w, off, false, false)),
-					TimezoneOffsetZ => off.map(|&(_, off)| write_local_minus_utc(w, off, true, false)),
+					TimezoneOffsetColon => off.map(|&(_, off)| write_local_minus_utc(w, off, false, ColonMode::Single)),
+					TimezoneOffsetDoubleColon => off.map(|&(_, off)| write_local_minus_utc(w, off, false, ColonMode::Double)),
+					TimezoneOffsetTripleColon => off.map(|&(_, off)| write_local_minus_utc(w, off, false, ColonMode::Triple)),
+					TimezoneOffsetColonZ => off.map(|&(_, off)| write_local_minus_utc(w, off, true, ColonMode::Single)),
+					TimezoneOffset => off.map(|&(_, off)| write_local_minus_utc(w, off, false, ColonMode::None)),
+					TimezoneOffsetZ => off.map(|&(_, off)| write_local_minus_utc(w, off, true, ColonMode::None)),
 					RFC2822 =>
 					// same to `%a, %e %b %Y %H:%M:%S %z`
 					{
@@ -303,7 +311,7 @@ where
 								t.minute(),
 								sec
 							)?;
-							Some(write_local_minus_utc(w, off, false, false))
+							Some(write_local_minus_utc(w, off, false, ColonMode::None))
 						} else {
 							None
 						}
@@ -315,7 +323,7 @@ where
 							// reuse `Debug` impls which already print ISO 8601 format.
 							// this is faster in this way.
 							write!(w, "{:?}T{:?}", d, t)?;
-							Some(write_local_minus_utc(w, off, false, true))
+							Some(write_local_minus_utc(w, off, false, ColonMode::Single))
 						} else {
 							None
 						}
